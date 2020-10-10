@@ -45,6 +45,7 @@ void QuadControl::Init()
 
   minMotorThrust = config->Get(_config + ".minMotorThrust", 0);
   maxMotorThrust = config->Get(_config + ".maxMotorThrust", 100);
+  
 #else
   // load params from PX4 parameter system
   //TODO
@@ -69,11 +70,26 @@ VehicleCommand QuadControl::GenerateMotorCommands(float collThrustCmd, V3F momen
   // You'll need the arm length parameter L, and the drag/thrust ratio kappa
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
-
-  cmd.desiredThrustsN[0] = mass * 9.81f / 4.f; // front left
-  cmd.desiredThrustsN[1] = mass * 9.81f / 4.f; // front right
-  cmd.desiredThrustsN[2] = mass * 9.81f / 4.f; // rear left
-  cmd.desiredThrustsN[3] = mass * 9.81f / 4.f; // rear right
+  const float l = L / sqrt(2.0F);
+  
+  float m_x = momentCmd.x;
+  float m_y = momentCmd.y;
+  float m_z = momentCmd.z;
+  
+  float f1 = (collThrustCmd + m_x/L + m_y/L - m_z/kappa);
+  float f2 = f1 - (m_x/L - m_z/kappa) / 2.0;
+  float f4 = ((collThrustCmd - m_x/L) / 2.0) - f2;
+  float f3 = collThrustCmd - f1 - f2 - f4;
+  
+  cmd.desiredThrustsN[0] = CONSTRAIN(f1, minMotorThrust, maxMotorThrust);
+  cmd.desiredThrustsN[1] = CONSTRAIN(f2, minMotorThrust, maxMotorThrust);
+  cmd.desiredThrustsN[2] = CONSTRAIN(f3, minMotorThrust, maxMotorThrust);
+  cmd.desiredThrustsN[3] = CONSTRAIN(f4, minMotorThrust, maxMotorThrust);
+  
+//  cmd.desiredThrustsN[0] = mass * 9.81f / 4.f; // front left
+//  cmd.desiredThrustsN[1] = mass * 9.81f / 4.f; // front right
+//  cmd.desiredThrustsN[2] = mass * 9.81f / 4.f; // rear left
+//  cmd.desiredThrustsN[3] = mass * 9.81f / 4.f; // rear right
 
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
@@ -95,10 +111,23 @@ V3F QuadControl::BodyRateControl(V3F pqrCmd, V3F pqr)
   //  - you'll also need the gain parameter kpPQR (it's a V3F)
 
   V3F momentCmd;
-
+  
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
 
+  V3F rate_error = pqrCmd - pqr;
   
+  momentCmd = V3F(Ixx, Iyy, Izz) * (kpPQR * rate_error);
+
+  //TODO: constrain
+//  moment_cmd = MOI * np.multiply(Kp_rate, rate_error)
+//    if np.linalg.norm(moment_cmd) > MAX_TORQUE:
+//        moment_cmd = moment_cmd*MAX_TORQUE/np.linalg.norm(moment_cmd)
+//  float max_torque = maxMotorThrust * kappa;
+//  if (momentCmd.norm() += V3F(max_torque)) {
+//    momentCmd
+//  }
+  
+  return momentCmd;
 
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
