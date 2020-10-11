@@ -214,10 +214,13 @@ float QuadControl::AltitudeControl(float posZCmd, float velZCmd, float posZ, flo
 //
 ////  float u_bar_1 = kpPosZ * (posZCmd - posZ) + kpVelZ * (velZCmd - velZ) +
   
-  velZCmd += kpPosZ * (posZCmd - posZ);
+  float z_error = (posZCmd - posZ);
+  velZCmd += kpPosZ * z_error;
   CONSTRAIN(velZCmd, -maxDescentRate, maxAscentRate);
   
-  accelZCmd += kpVelZ * (velZCmd - velZ);
+  integratedAltitudeError += z_error * dt;
+  
+  accelZCmd += kpVelZ * (velZCmd - velZ) + KiPosZ * integratedAltitudeError;
   
   thrust = mass * -accelZCmd / R(2,2);
   CONSTRAIN(thrust, minMotorThrust, maxMotorThrust);
@@ -269,9 +272,6 @@ V3F QuadControl::LateralPositionControl(V3F posCmd, V3F velCmd, V3F pos, V3F vel
 //  accelCmd += kpPosXY * (posCmd - pos) + kpVelXY * (velCmd - vel);
   accelCmd.constrain(-maxAccelXY, maxAccelXY);
   accelCmd.z = 0.0F;
-  
-  std::cout << "accel: " << accelCmd.x << ", " << accelCmd.y << ", " << accelCmd.z << std::endl;
-  
   
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
