@@ -87,11 +87,6 @@ VehicleCommand QuadControl::GenerateMotorCommands(float collThrustCmd, V3F momen
   cmd.desiredThrustsN[1] = CONSTRAIN(f2, minMotorThrust, maxMotorThrust);
   cmd.desiredThrustsN[2] = CONSTRAIN(f3, minMotorThrust, maxMotorThrust);
   cmd.desiredThrustsN[3] = CONSTRAIN(f4, minMotorThrust, maxMotorThrust);
-  
-//  cmd.desiredThrustsN[0] = mass * 9.81f / 4.f; // front left
-//  cmd.desiredThrustsN[1] = mass * 9.81f / 4.f; // front right
-//  cmd.desiredThrustsN[2] = mass * 9.81f / 4.f; // rear left
-//  cmd.desiredThrustsN[3] = mass * 9.81f / 4.f; // rear right
 
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
@@ -120,15 +115,6 @@ V3F QuadControl::BodyRateControl(V3F pqrCmd, V3F pqr)
   
   momentCmd = V3F(Ixx, Iyy, Izz) * kpPQR * rate_error;
 
-  //TODO: constrain
-//  moment_cmd = MOI * np.multiply(Kp_rate, rate_error)
-//    if np.linalg.norm(moment_cmd) > MAX_TORQUE:
-//        moment_cmd = moment_cmd*MAX_TORQUE/np.linalg.norm(moment_cmd)
-//  float max_torque = maxMotorThrust * kappa;
-//  if (momentCmd.norm() += V3F(max_torque)) {
-//    momentCmd
-//  }
-  
   return momentCmd;
 
   /////////////////////////////// END STUDENT CODE ////////////////////////////
@@ -201,19 +187,7 @@ float QuadControl::AltitudeControl(float posZCmd, float velZCmd, float posZ, flo
   float thrust = 0;
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
-//  float z_error = posZCmd - posZ;
-//  float hdot_cmd = kpPosZ * z_error + velZCmd;
-//  hdot_cmd = CONSTRAIN(hdot_cmd, -maxDescentRate, maxAscentRate);
-//
-//  integratedAltitudeError += z_error * dt;
-//  float accel_cmd = accelZCmd + kpVelZ * (hdot_cmd - velZ) + KiPosZ * integratedAltitudeError;
-//
-////  float R33 = cos(attitude[0]) * cos(attitude[1]);
-//  thrust = mass * (float(CONST_GRAVITY) - accel_cmd) / R(2,2);
-//  thrust = CONSTRAIN(thrust, 0.0, maxMotorThrust);
-//
-////  float u_bar_1 = kpPosZ * (posZCmd - posZ) + kpVelZ * (velZCmd - velZ) +
-  
+
   float z_error = (posZCmd - posZ);
   velZCmd += kpPosZ * z_error;
   CONSTRAIN(velZCmd, -maxDescentRate, maxAscentRate);
@@ -265,11 +239,7 @@ V3F QuadControl::LateralPositionControl(V3F posCmd, V3F velCmd, V3F pos, V3F vel
   velCmd.constrain(-maxSpeedXY, maxSpeedXY);
   
   accelCmd += kpVelXY * (velCmd - vel);
-//
-//  accelCmd += velCmd + kpVelXY * (velCmd - vel);
-//  accelCmd.constrain(-maxAccelXY, maxAccelXY);
-  
-//  accelCmd += kpPosXY * (posCmd - pos) + kpVelXY * (velCmd - vel);
+
   accelCmd.constrain(-maxAccelXY, maxAccelXY);
   accelCmd.z = 0.0F;
   
@@ -296,13 +266,6 @@ float QuadControl::YawControl(float yawCmd, float yaw)
 
   float yaw_error = yawCmd - yaw;
   yaw_error = fmodf(yaw_error, 2.0F * F_PI);
-
-//  if (yaw_error > F_PI) {
-//    yaw_error -= 2.0F * F_PI;
-//  }
-//  else if (yaw_error < -F_PI) {
-//    yaw_error += 2.0F * F_PI;
-//  }
 
   yawRateCmd = kpYaw * yaw_error;
   
