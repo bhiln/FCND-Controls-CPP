@@ -78,9 +78,9 @@ VehicleCommand QuadControl::GenerateMotorCommands(float collThrustCmd, V3F momen
   float m_y = momentCmd.y;
   float m_z = momentCmd.z;
   
-  float f1 = (collThrustCmd + m_x/l + m_y/l - m_z/kappa);
-  float f2 = f1 - (m_x/l - m_z/kappa) / 2.0;
-  float f4 = ((collThrustCmd - m_x/l) / 2.0) - f2;
+  float f1 = (collThrustCmd + m_x/l + m_y/l - m_z/kappa)/4.0F;
+  float f2 = f1 - (m_x/l - m_z/kappa) / 2.0F;
+  float f4 = ((collThrustCmd - m_x/l) / 2.0F) - f2;
   float f3 = collThrustCmd - f1 - f2 - f4;
   
   cmd.desiredThrustsN[0] = CONSTRAIN(f1, minMotorThrust, maxMotorThrust);
@@ -118,7 +118,7 @@ V3F QuadControl::BodyRateControl(V3F pqrCmd, V3F pqr)
 
   V3F rate_error = pqrCmd - pqr;
   
-  momentCmd = V3F(Ixx, Iyy, Izz) * (kpPQR * rate_error);
+  momentCmd = V3F(Ixx, Iyy, Izz) * kpPQR * rate_error;
 
   //TODO: constrain
 //  moment_cmd = MOI * np.multiply(Kp_rate, rate_error)
@@ -160,55 +160,13 @@ V3F QuadControl::RollPitchControl(V3F accelCmd, Quaternion<float> attitude, floa
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
 
-//  float c = collThrustCmd / mass;
-//
-//  float b_x_actual = R(0,2);
-//  float b_x_commanded = accelCmd.x / c;
-//  CONSTRAIN(b_x_commanded, -maxTiltAngle, maxTiltAngle);
-//  float b_x_error = b_x_commanded - b_x_actual;
-//  float b_dot_x_commanded = kpBank * b_x_error;
-//
-//  float b_y_actual = R(1,2);
-//  float b_y_commanded = accelCmd.y / c;
-//  CONSTRAIN(b_y_commanded, -maxTiltAngle, maxTiltAngle);
-//  float b_y_error = b_y_commanded - b_y_actual;
-//  float b_dot_y_commanded = kpBank * b_y_error;
-//
-//  pqrCmd.x = (1/R(2,2)) * (R(1,0) * b_dot_x_commanded - R(0,0) * b_dot_y_commanded);
-//  pqrCmd.y = (1/R(2,2)) * (R(1,1) * b_dot_x_commanded - R(0,1) * b_dot_y_commanded);
-//  pqrCmd.z = 0.0F;
+  pqrCmd = V3F(0.0, 0.0, 0.0);
   
-//  float R11 = R(0, 0);
-//    float R12 = R(0, 1);
-//    float R13 = R(0, 2);
-//    float R21 = R(1, 0);
-//    float R22 = R(1, 1);
-//    float R23 = R(1, 2);
-//    float R33 = R(2, 2);
-//
-//    float c = -collThrustCmd / mass;
-//    V3F b_c = V3F(accelCmd.x / c, accelCmd.y / c, 0.f);
-//    b_c.constrain(-maxTiltAngle, maxTiltAngle);
-//
-//    V3F b_error = b_c - V3F(R(0, 2), R(1, 2), 0.f);
-//    V3F b_c_dot = kpBank * b_error;
-//
-//    pqrCmd.x = (R21 * b_c_dot.x - R11 * b_c_dot.y) / R33;
-//    pqrCmd.y = (R22 * b_c_dot.x - R12 * b_c_dot.y) / R33;
-//    pqrCmd.z = 0.f;
+  float c = collThrustCmd / mass;
   
-  float c_d = collThrustCmd / mass;
-  
-  pqrCmd = V3F(0.0F,0.0F,0.0F);
-  
-  if (collThrustCmd > 0.0F) {
-    float target_R13 = accelCmd[0] / c_d;
-    CONSTRAIN(target_R13, -maxTiltAngle, maxTiltAngle);
-    target_R13 *= -1;
-    
-    float target_R23 = accelCmd[1] / c_d;
-    CONSTRAIN(target_R23, -maxTiltAngle, maxTiltAngle);
-    target_R23 *= -1;
+  if (collThrustCmd > 0) {
+    float target_R13 = -CONSTRAIN(accelCmd.x / c, -maxTiltAngle, maxTiltAngle);
+    float target_R23 = -CONSTRAIN(accelCmd.y / c, -maxTiltAngle, maxTiltAngle);
     
     pqrCmd[0] = (1/R(2,2)) * (-R(1,0) * kpBank * (R(0,2) - target_R13) + R(0,0) * kpBank * (R(1,2) - target_R23));
     pqrCmd[1] = (1/R(2,2)) * (-R(1,1) * kpBank * (R(0,2) - target_R13) + R(0,1) * kpBank * (R(1,2) - target_R23));
