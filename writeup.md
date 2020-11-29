@@ -10,7 +10,7 @@ Next I calculated a desired 3-axis moment given a desired and current body rate.
 Next, I implement the roll and pitch control. First I convert the collective thrust command to an acceleration by dividing it by the mass of the quad. Then, I find the roll and pitch commands.
 After tuning the banking gain parameter, here is the outcome:
 
-![Attitude Control](./images/attitude_control.png?raw=true "Attitude Control")
+![Attitude Control](./images/attitude_control2.png?raw=true "Attitude Control")
 
 ## Implement altitude controller in C++. ##
 To implement altitude control, I used a PD controller, first finding the error between commanded z and current z, then multiplying this error by the gain to find the commanded z velocity. This is then constrained to -/+ max descent rate. To find the acceleration command, we find the error between the z velocity command just found and the current z velocity and multiply this with the z velocity gain. We finally calculate thrust and rotate to find thrust required, which is then constrained.
@@ -23,13 +23,15 @@ Again, a simple PD controller is used to control Yaw. In this case, the yaw erro
 
 After the altitude, lateral position, and yaw are completed, the result is:
 
-![Position Control](./images/position_control.png?raw=true "Position Control")
+![Position Control](./images/position_control2.png?raw=true "Position Control")
 
 ## Non-idealities and robustness. ##
 Next, the Altitude controller is updated to account for different mass vehicles by integrating the error over time and multiplying by the gain, which will smooth out the controls. After re-tuning, the different weighted vehicles fly correctly.
 
-![Nonidealities](./images/nonidealities.png?raw=true "Nonidealities")
+![Nonidealities](./images/nonidealities2.png?raw=true "Nonidealities")
 
 After implementing all of these controllers, the vehicles follow the figure 8 trajectory very well!
 
-![Tracking](./images/tracking.png?raw=true "Tracking")
+![Tracking](./images/tracking2.png?raw=true "Tracking")
+
+Note: After submitting my project and receiving feedback about slight errors in my logic, I used [this repo](https://github.com/horagong/FCND-Controls-CPP/) to help debug and follow some logic. I believe that I understand all the concepts now, and this repo was very helpful in debugging.
